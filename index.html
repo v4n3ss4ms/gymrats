@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none';">
+  <title>Gym</title>
+  <meta name="description" content="Entrenos de Pinky y Cerebro">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#13171f" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="vendor/pico.2.1.1.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="vendor/chart.4.5.1.min.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body class="anon">
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <div class="app">
+    <header class="app-header">
+      <p class="brand">Gym</p>
+      <p id="conn" class="conn" role="status" aria-live="polite"></p>
+      <div id="who" class="who hidden">
+        <span id="who-name"></span>
+        <button id="logout" type="button" class="secondary outline">Salir</button>
+      </div>
+    </header>
+    <nav id="nav" class="app-nav hidden" aria-label="Principal">
+      <ul>
+        <li><a href="#/hoy" data-nav="hoy">Hoy</a></li>
+        <li><a href="#/planes" data-nav="planes">Planes</a></li>
+        <li><a href="#/ejercicios" data-nav="ejercicios">Ejercicios</a></li>
+        <li><a href="#/historial" data-nav="historial">Historial</a></li>
+        <li><a href="#/graficas" data-nav="graficas">Gráficas</a></li>
+      </ul>
+    </nav>
+    <main id="main" class="app-main" tabindex="-1"></main>
+  </div>
+  <div id="alerts" class="alerts" role="alert"></div>
+  <p id="announcer" class="sr-only" role="status" aria-live="polite"></p>
+  <noscript><p class="noscript">Esta aplicación necesita JavaScript.</p></noscript>
+</body>
+</html>
