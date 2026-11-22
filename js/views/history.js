@@ -39,7 +39,7 @@ export function mount(container) {
               const mate = findMate(s);
               const plan = s.planId ? state.plans[s.planId]?.name : "";
               return h("li", {},
-                h("a", { href: `#/sesion/${s.id}`, "aria-label": `Abrir sesión del ${fmtDate(s.date)}` },
+                h("a", { href: `#/sesion/${s.id}` },
                   h("strong", { text: fmtDate(s.date) }),
                   h("span", { class: `badge status-${s.status}`, text: STATUS_LABEL[s.status] })),
                 h("span", { class: "muted small", text: [`${n} ${n === 1 ? "ejercicio" : "ejercicios"}`, plan, mate ? `con ${person(mate.uid).name}` : ""].filter(Boolean).join(" · ") }));

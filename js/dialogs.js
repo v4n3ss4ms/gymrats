@@ -74,7 +74,7 @@ export function exerciseDialog(id) {
   return modal(ex ? "Editar ejercicio" : "Nuevo ejercicio", (close) => {
     const name = h("input", { id: "ex-name", type: "text", maxlength: 80, required: true, autofocus: true, value: ex?.name ?? "" });
     const notes = h("textarea", { id: "ex-notes", rows: 3, maxlength: 2000, value: ex?.notes ?? "" });
-    const adj = h("input", { id: "ex-adj", type: "checkbox", checked: !!ex?.hasAdjustment });
+    const adj = h("input", { id: "ex-adj", type: "checkbox", checked: !!ex?.hasAdjustment, "aria-describedby": "ex-adj-help" });
     const img = h("input", { id: "ex-img", type: "text", maxlength: 120, value: ex?.imagePath ?? "", placeholder: "images/exercises/sentadilla.png" });
     const form = h(
       "form",
@@ -82,6 +82,7 @@ export function exerciseDialog(id) {
       field("Nombre", name, "ex-name-err"),
       field("Indicaciones técnicas", notes),
       h("label", { class: "check" }, adj, h("span", { text: "Tiene ajuste (altura de polea)" })),
+      h("p", { id: "ex-adj-help", class: "muted small", text: "El valor no se pone aquí: se elige en cada sesión y se recuerda para la próxima vez." }),
       field("Ruta de imagen (opcional)", img, "ex-img-err"),
       h(
         "div",
