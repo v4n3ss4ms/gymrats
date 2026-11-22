@@ -19,6 +19,8 @@ npx esbuild vendor-src/entry.js --bundle --format=esm --minify --outfile=vendor/
 
 ## Local
 
-`python3 -m http.server` o `python -m http.server 8000` en la raíz y abrir `http://localhost:8000/` (añadir temporalmente ese referente a la API key, ver SPEC §17).
+`python3 -m http.server 8000` en la raíz del proyecto (en Windows, si `python3` no funciona, usa `python` o `py`) y 
+abrir `http://localhost:8000/`.
 
-Al desplegar un cambio, subir la versión de `CACHE` en `sw.js`.
+Sólo si la API key ya está restringida por dominio, añadir `http://localhost:8000/*` y `http://127.0.0.1:8000/*` a 
+sus referentes.
