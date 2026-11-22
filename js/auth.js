@@ -5,8 +5,8 @@ import { EMAIL_DOMAIN, USERS } from "./config.js";
 const GENERIC = "Usuario o contraseña incorrectos.";
 
 export async function login(username, password) {
-  const u = String(username).trim().toLowerCase();
-  if (!USERS[u] || !password) throw new Error(GENERIC);
+  const u = String(username).trim().toLowerCase().split("@")[0];
+  if (!Object.hasOwn(USERS, u) || !password) throw new Error(GENERIC);
   try {
     await signInWithEmailAndPassword(auth, `${u}@${EMAIL_DOMAIN}`, password);
   } catch (e) {
@@ -35,7 +35,12 @@ function authMessage(e) {
       return "Sin conexión. Comprueba la red e inténtalo de nuevo.";
     case "auth/too-many-requests":
       return "Demasiados intentos. Espera un momento e inténtalo de nuevo.";
-    default:
+    case "auth/invalid-credential":
+    case "auth/invalid-email":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
       return GENERIC;
+    default:
+      return `No se pudo iniciar sesión (${e?.code ?? "error"}).`;
   }
 }

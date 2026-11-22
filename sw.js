@@ -1,4 +1,4 @@
-const CACHE = "gym-v1";
+const CACHE = "gym-v2";
 const ASSETS = [
   "./", "index.html", "manifest.webmanifest", "css/style.css",
   "vendor/pico.2.1.1.min.css", "vendor/chart.4.5.1.min.js", "vendor/firebase.js",

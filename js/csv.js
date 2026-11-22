@@ -4,7 +4,8 @@ import { setKeys, byName, todayStr } from "./model.js";
 const HEADER = ["date", "user", "exercise", "set", "reps", "kg", "adjustment", "session_status", "session_notes", "plan", "trained_with"];
 
 function esc(v) {
-  const s = String(v ?? "");
+  let s = String(v ?? "");
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return /[";\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
@@ -35,7 +36,7 @@ export function buildRows({ uid = "", from = "", to = "" } = {}) {
 
 export function buildCsv(filter) {
   const lines = [HEADER, ...buildRows(filter)].map((r) => r.map(esc).join(";"));
-  return "﻿" + lines.join("\r\n") + "\r\n";
+  return "\uFEFF" + lines.join("\r\n") + "\r\n";
 }
 
 export function downloadCsv(filter) {

@@ -54,6 +54,9 @@ export function mount(container) {
     const mineFirst = (a, b) => (a.uid === state.uid ? -1 : b.uid === state.uid ? 1 : 0);
     const day = all.filter((s) => s.date === selDate).sort(mineFirst);
     const upcoming = all.filter((s) => s.date > todayStr() && s.status === "planned" && s.date !== selDate).sort((a, b) => a.date.localeCompare(b.date) || mineFirst(a, b));
+    const overdue = all
+      .filter((s) => s.status === "planned" && s.date < todayStr() && s.date !== selDate)
+      .sort((a, b) => b.date.localeCompare(a.date) || mineFirst(a, b));
     rerender(container, [
       h("h1", { text: "Hoy" }),
       h(
@@ -69,6 +72,9 @@ export function mount(container) {
       ),
       upcoming.length
         ? h("section", { "aria-labelledby": "sec-up" }, h("h2", { id: "sec-up", text: "Planificados" }), h("div", { class: "cards" }, upcoming.map(sessionCard)))
+        : null,
+      overdue.length
+        ? h("section", { "aria-labelledby": "sec-od" }, h("h2", { id: "sec-od", text: "Pendientes de días anteriores" }), h("div", { class: "cards" }, overdue.map(sessionCard)))
         : null
     ]);
   }

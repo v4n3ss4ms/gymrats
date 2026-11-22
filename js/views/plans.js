@@ -53,6 +53,7 @@ export function mountEdit(container, params) {
   let mode = wide ? "both" : state.uid;
   let nameTimer = null;
   let lastSig = null;
+  let pendingFocus = null;
 
   const flushName = () => {
     if (nameTimer == null) return;
@@ -84,8 +85,12 @@ export function mountEdit(container, params) {
     if (!plan) return;
     if (action === "add") {
       const ids = await dialogs.pickExercises({ exclude: new Set(plan.byUser?.[uid] ?? []) });
-      if (ids?.length) db.updateFields("plans", pid, { [`byUser.${uid}`]: db.union(...ids) });
+      if (ids?.length) {
+        pendingFocus = `[data-action="add"][data-uid="${uid}"]`;
+        db.updateFields("plans", pid, { [`byUser.${uid}`]: db.union(...ids) });
+      }
     } else if (action === "remove") {
+      pendingFocus = `[data-action="add"][data-uid="${uid}"]`;
       db.updateFields("plans", pid, { [`byUser.${uid}`]: db.remove(ex) });
     } else if (action === "include") {
       db.updateFields("plans", pid, { [`byUser.${uid}`]: [] });
@@ -119,12 +124,12 @@ export function mountEdit(container, params) {
               : h("p", { class: "muted", text: "Sin ejercicios." }),
             h("div", { class: "btn-row start" },
               h("button", { type: "button", class: "secondary", "aria-label": `Añadir ejercicios al plan de ${p.name}`, dataset: { action: "add", uid }, text: "+ Ejercicios" }),
-              h("button", { type: "button", class: "secondary outline", "aria-label": `Aplicar la lista de ${p.name} también a ${person(other).name}`, dataset: { action: "copy", uid }, text: `Aplicar también a ${person(other).name}` })
+              h("button", { type: "button", class: "secondary outline", "aria-label": `Aplicar también a ${person(other).name}, lista de ${p.name}`, dataset: { action: "copy", uid }, text: `Aplicar también a ${person(other).name}` })
             )
           ]
         : [
             h("p", { class: "muted", text: `Este plan no incluye a ${p.name}.` }),
-            h("button", { type: "button", class: "secondary", dataset: { action: "include", uid }, "aria-label": `Añadir a ${p.name} a este plan`, text: "Incluir" })
+            h("button", { type: "button", class: "secondary", dataset: { action: "include", uid }, "aria-label": `Incluir a ${p.name} en este plan`, text: "Incluir" })
           ]
     );
   }
@@ -150,6 +155,10 @@ export function mountEdit(container, params) {
       h("div", { class: `panels${shown.length > 1 ? " two" : ""}` }, shown.map((u) => side(plan, u))),
       h("p", {}, h("a", { href: "#/planes", text: "← Volver a Planes" }))
     ]);
+    if (pendingFocus) {
+      container.querySelector(pendingFocus)?.focus();
+      pendingFocus = null;
+    }
   }
 
   return {

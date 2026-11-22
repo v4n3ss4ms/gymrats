@@ -21,11 +21,15 @@ export function mount(container, params) {
   if (ui.sid !== sid) Object.assign(ui, { sid, together: false, mode: null, exOpen: {} });
   let lastSig = null;
   let started = false;
+  let pendingFocus = null;
 
   const nameOf = (id) => state.exercises[id]?.name ?? "Ejercicio desconocido";
+  let held = null;
+  let heldDone = false;
+  const isDone = (s, id) => (held === `${s.id}|${id}` ? heldDone : isExerciseDone(s.exercises[id]));
   const orderedIds = (s) => {
     const ids = Object.keys(s.exercises ?? {}).sort(byName(state.exercises));
-    return [...ids.filter((i) => !isExerciseDone(s.exercises[i])), ...ids.filter((i) => isExerciseDone(s.exercises[i]))];
+    return [...ids.filter((i) => !isDone(s, i)), ...ids.filter((i) => isDone(s, i))];
   };
   const placeholderOf = (s, id) => state.states[`${s.uid}_${id}`]?.reps ?? null;
 
@@ -51,7 +55,7 @@ export function mount(container, params) {
           id,
           n: nameOf(id),
           sets: setKeys(s.exercises[id]),
-          done: isExerciseDone(s.exercises[id]),
+          done: isDone(s, id),
           adj: !!state.exercises[id]?.hasAdjustment,
           xn: !!state.exercises[id]?.notes,
           sw: s.exercises[id].swappedFrom ?? null,
@@ -138,7 +142,7 @@ export function mount(container, params) {
     const ex = s.exercises[id];
     const cat = state.exercises[id];
     const name = nameOf(id);
-    const done = isExerciseDone(ex);
+    const done = isDone(s, id);
     const key = `${s.id}|${id}`;
     const ph = placeholderOf(s, id);
     const p = person(s.uid);
@@ -227,8 +231,8 @@ export function mount(container, params) {
         s.status === "done"
           ? h("button", { type: "button", class: "secondary", "aria-label": `Reabrir entreno de ${p.name}`, dataset: { action: "reopen", sid: s.id }, text: "Reabrir" })
           : h("button", { type: "button", "aria-label": `Terminar entreno de ${p.name}`, dataset: { action: "finish", sid: s.id }, text: "Terminar entreno" }),
-        h("button", { type: "button", class: "secondary outline", "aria-label": `Guardar la sesión de ${p.name} como plan`, dataset: { action: "save-plan", sid: s.id }, text: "Guardar como plan" }),
-        h("button", { type: "button", class: "secondary outline danger", "aria-label": `Eliminar la sesión de ${p.name}`, dataset: { action: "delete", sid: s.id }, text: "Eliminar sesión" })
+        h("button", { type: "button", class: "secondary outline", "aria-label": `Guardar como plan, sesión de ${p.name}`, dataset: { action: "save-plan", sid: s.id }, text: "Guardar como plan" }),
+        h("button", { type: "button", class: "secondary outline danger", "aria-label": `Eliminar sesión de ${p.name}`, dataset: { action: "delete", sid: s.id }, text: "Eliminar sesión" })
       )
     );
   }
@@ -327,6 +331,12 @@ export function mount(container, params) {
     if (sig !== lastSig) {
       lastSig = sig;
       rerender(container, buildAll(s, mate, shown));
+      syncValues();
+      if (pendingFocus) {
+        container.querySelector(pendingFocus)?.focus();
+        pendingFocus = null;
+      }
+      return;
     }
     syncValues();
   }
@@ -340,11 +350,15 @@ export function mount(container, params) {
     switch (action) {
       case "add-ex": {
         const ids = await dialogs.pickExercises({ exclude: new Set(Object.keys(s.exercises ?? {})) });
-        if (ids?.length) actions.addExercises(s.id, ids);
+        if (ids?.length) {
+          pendingFocus = `[data-action="add-ex"][data-sid="${s.id}"]`;
+          actions.addExercises(s.id, ids);
+        }
         break;
       }
       case "remove-ex": {
         if (anyReps(s.exercises[ex]) && !(await confirmDialog("Quitar ejercicio", `Se perderán las series registradas de ${nameOf(ex)}. ¿Quitarlo?`, "Quitar"))) return;
+        pendingFocus = `[data-action="add-ex"][data-sid="${s.id}"]`;
         actions.removeExercise(s.id, ex);
         break;
       }
@@ -353,8 +367,16 @@ export function mount(container, params) {
         if (r?.length) actions.swapExercise(s.id, ex, r[0]);
         break;
       }
-      case "add-set": actions.addSet(s.id, ex); break;
-      case "del-set": actions.removeSet(s.id, ex, set); break;
+      case "add-set": {
+        const n = Math.max(0, ...setKeys(s.exercises[ex]).map(Number)) + 1;
+        pendingFocus = `[data-fk="${s.id}|${ex}|${n}|reps"]`;
+        actions.addSet(s.id, ex);
+        break;
+      }
+      case "del-set":
+        pendingFocus = `[data-action="add-set"][data-sid="${s.id}"][data-ex="${ex}"]`;
+        actions.removeSet(s.id, ex, set);
+        break;
       case "accept": save(s.id, { [`exercises.${ex}.sets.${set}.reps`]: Number(value) }); break;
       case "chip": {
         const cur = s.exercises[ex].adjustment;
@@ -435,6 +457,25 @@ export function mount(container, params) {
   container.addEventListener("input", onInput);
   container.addEventListener("change", onChange);
   container.addEventListener("toggle", onToggle, true);
+  container.addEventListener("focusin", (e) => {
+    const d = e.target.dataset;
+    if (!d?.ex) return;
+    const key = `${d.sid}|${d.ex}`;
+    if (held !== key) {
+      held = key;
+      heldDone = isExerciseDone(getSession(d.sid)?.exercises?.[d.ex]);
+    }
+  });
+  container.addEventListener("focusout", () =>
+    setTimeout(() => {
+      const a = document.activeElement;
+      const d = a?.dataset;
+      if (held && !(container.contains(a) && `${d.sid}|${d.ex}` === held)) {
+        held = null;
+        render();
+      }
+    }, 0)
+  );
 
   return {
     title: () => {
