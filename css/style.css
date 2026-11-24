@@ -204,7 +204,7 @@ legend { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; }
   font-weight: 600;
   white-space: nowrap;
 }
-.badge.ok, .badge.status-done { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; }
+.badge.status-done { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; }
 .badge.status-in_progress, .badge.status-planned { background: var(--warn-bg); color: var(--warn-fg); border-color: transparent; }
 
 .avatar {
@@ -284,7 +284,6 @@ details.ex-card > summary h3 { margin: 0; display: inline; overflow-wrap: anywhe
 .set-row input { text-align: center; padding-inline: 0.5rem; }
 .set-actions { display: flex; flex-direction: column; gap: 0.375rem; align-items: stretch; }
 .set-row .icon-btn, .plan-list .icon-btn { width: 3rem; height: 3rem; padding: 0; margin: 0; align-self: end; flex: none; }
-.set-row .accept { margin: 0; min-height: 3rem; padding: 0.25rem 0.5rem; font-size: 0.875rem; }
 @media (max-width: 420px) {
   .set-row { grid-template-columns: 1fr 1fr; }
   .set-n { display: none; }
