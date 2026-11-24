@@ -1,5 +1,6 @@
 export const DELETE = Symbol("delete");
-export const DEFAULT_SETS = 3;
+export const DEFAULT_SETS_ADDED = 1;
+export const DEFAULT_SETS_PLAN = 3;
 export const ADJUSTMENT_CHIPS = ["mín", "máx", "rodillas", "caderas", "cintura", "pecho", "hombros", "cabeza"];
 export const STATUS_LABEL = { planned: "Planificado", in_progress: "En curso", done: "Hecho" };
 export const MAX_KG = 1000;
@@ -67,10 +68,10 @@ export function fmtInput(n) {
   return n == null || n === 0 ? "" : String(n).replace(".", ",");
 }
 
-export function newExerciseEntry(exercise, st, swappedFrom) {
+export function newExerciseEntry(exercise, st, swappedFrom, setCount = DEFAULT_SETS_ADDED) {
   const kg = typeof st?.kg === "number" ? st.kg : 0;
   const sets = {};
-  for (let i = 1; i <= DEFAULT_SETS; i++) sets[i] = { reps: null, kg };
+  for (let i = 1; i <= setCount; i++) sets[i] = { reps: null, kg };
   const e = { sets };
   if (exercise?.hasAdjustment && st?.adjustment) e.adjustment = st.adjustment;
   if (swappedFrom) e.swappedFrom = swappedFrom;
