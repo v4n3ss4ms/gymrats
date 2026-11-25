@@ -1,13 +1,13 @@
 import * as db from "./db.js";
 import { save } from "./autosave.js";
 import { state, getSession, putLocal, allSessions, otherUid } from "./state.js";
-import { DELETE, newExerciseEntry, byName } from "./model.js";
+import { DELETE, DEFAULT_SETS_PLAN, newExerciseEntry, byName } from "./model.js";
 
 const stateOf = (uid, exId) => state.states[`${uid}_${exId}`];
 
 export function createSession({ uid, date, status, planId = null, groupId = null, exerciseIds = [] }) {
   const exercises = {};
-  for (const id of exerciseIds) exercises[id] = newExerciseEntry(state.exercises[id], stateOf(uid, id));
+  for (const id of exerciseIds) exercises[id] = newExerciseEntry(state.exercises[id], stateOf(uid, id), undefined, DEFAULT_SETS_PLAN);
   const data = { uid, date, status, planId, groupId, notes: "", exercises };
   const id = db.createDoc("sessions", data);
   putLocal("sessions", id, data);
@@ -60,6 +60,22 @@ export function addSet(sid, exId) {
   const prev = ex?.sets?.[Math.max(...keys)];
   const kg = typeof prev?.kg === "number" ? prev.kg : stateOf(getSession(sid).uid, exId)?.kg ?? 0;
   save(sid, { [`exercises.${exId}.sets.${next}`]: { reps: null, kg } }, { immediate: true });
+}
+
+export function duplicateSet(sid, exId) {
+  const ex = getSession(sid).exercises?.[exId];
+  const keys = Object.keys(ex?.sets ?? {}).map(Number);
+  if (!keys.length) return;
+  const last = Math.max(...keys);
+  const src = ex.sets[last];
+  save(
+    sid,
+    {
+      [`exercises.${exId}.sets.${last + 1}.reps`]: src.reps ?? null,
+      [`exercises.${exId}.sets.${last + 1}.kg`]: src.kg ?? 0
+    },
+    { immediate: true }
+  );
 }
 
 export function removeSet(sid, exId, n) {

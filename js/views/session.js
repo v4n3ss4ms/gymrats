@@ -59,8 +59,7 @@ export function mount(container, params) {
           adj: !!state.exercises[id]?.hasAdjustment,
           xn: !!state.exercises[id]?.notes,
           sw: s.exercises[id].swappedFrom ?? null,
-          ph: placeholderOf(s, id),
-          repsNull: setKeys(s.exercises[id]).filter((k) => s.exercises[id].sets[k].reps == null)
+          ph: placeholderOf(s, id)
         }))
       }))
     });
@@ -96,13 +95,6 @@ export function mount(container, params) {
       h(
         "div",
         { class: "set-actions" },
-        ph != null && set.reps == null
-          ? h("button", {
-              type: "button", class: "accept secondary",
-              "aria-label": `Usar ${ph} repeticiones en la serie ${n} de ${name}`,
-              dataset: { action: "accept", sid: s.id, ex: id, set: n, value: ph }, text: `Usar ${ph}`
-            })
-          : null,
         h("button", {
           type: "button", class: "icon-btn secondary outline", "aria-label": `Eliminar serie ${n} de ${name}`,
           dataset: { action: "del-set", sid: s.id, ex: id, set: n }, text: "✕"
@@ -153,7 +145,7 @@ export function mount(container, params) {
         "summary",
         {},
         h("h3", { text: name }),
-        done ? h("span", { class: "badge ok" }, h("span", { "aria-hidden": "true", text: "✓ " }), "Hecho") : null
+        done ? h("span", { class: "sr-only", text: "Hecho" }) : null
       ),
       h(
         "div",
@@ -171,6 +163,12 @@ export function mount(container, params) {
             type: "button", class: "secondary", "aria-label": `Añadir serie a ${name}`,
             dataset: { action: "add-set", sid: s.id, ex: id }, text: "+ Serie"
           }),
+          setKeys(ex).length
+            ? h("button", {
+                type: "button", class: "secondary", "aria-label": `Duplicar serie ${Math.max(...setKeys(ex).map(Number))} de ${name}`,
+                dataset: { action: "dup-set", sid: s.id, ex: id }, text: "Duplicar serie"
+              })
+            : null,
           h("button", {
             type: "button", class: "secondary outline", "aria-label": `Sustituir ${name}`,
             dataset: { action: "swap-ex", sid: s.id, ex: id }, text: "Sustituir"
@@ -377,7 +375,12 @@ export function mount(container, params) {
         pendingFocus = `[data-action="add-set"][data-sid="${s.id}"][data-ex="${ex}"]`;
         actions.removeSet(s.id, ex, set);
         break;
-      case "accept": save(s.id, { [`exercises.${ex}.sets.${set}.reps`]: Number(value) }); break;
+      case "dup-set": {
+        const n = Math.max(0, ...setKeys(s.exercises[ex]).map(Number)) + 1;
+        pendingFocus = `[data-fk="${s.id}|${ex}|${n}|reps"]`;
+        actions.duplicateSet(s.id, ex);
+        break;
+      }
       case "chip": {
         const cur = s.exercises[ex].adjustment;
         save(s.id, { [`exercises.${ex}.adjustment`]: cur === value ? DELETE : value });
